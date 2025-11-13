@@ -7,7 +7,7 @@ if (!process.env.GEMINI_API_KEY || !process.env.QDRANT_URL
   throw new Error('환경변수 누락');
 }
 
-const THRESHOLD = 0.65;
+const THRESHOLD = 0.6;
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const qdrant = new QdrantClient({
   url: process.env.QDRANT_URL,       
@@ -47,10 +47,11 @@ export async function POST(req) {
     });
 
 
-    //비슷한 질문을 못 찾으면 안내 메시지 반환
-    if (!results.length)
+    //비슷한 질문을 못 찾으면 안내 메시지 반환. 유사도 검증
+    const best = results[0];
+    if (!best || best.score < THRESHOLD) {
       return new Response(JSON.stringify({ answer: '데이터셋에 없는 질문이에요.' }), { status: 200 });
-
+    }
 
     // 가장 유사한 하나를 꺼내서, 그 벡터에 연결된 payload.answer(=정답 텍스트)만 그대로 반환
     const answer = results[0]?.payload?.answer;
