@@ -7,7 +7,7 @@ if (!process.env.GEMINI_API_KEY || !process.env.QDRANT_URL
   throw new Error('환경변수 누락');
 }
 
-const THRESHOLD = 0.6;
+const THRESHOLD = 0.65;
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const qdrant = new QdrantClient({
   url: process.env.QDRANT_URL,       

@@ -7,13 +7,27 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const chatEndRef = useRef(null);
 
+  // 🔹 추천 질문 8개
+  const samples = [
+    { q: "임베딩(Embedding)이 뭐야?", a: "텍스트를 의미 기반 숫자 벡터로 바꾸는 과정이에요." },
+    { q: "Gemini Embedding API는 어떤 역할을 해?", a: "문장을 벡터로 변환해 Qdrant 검색에 쓰여요." },
+    { q: "Qdrant는 뭐 하는 도구야?", a: "벡터 기반 유사도 검색을 수행하는 데이터베이스예요." },
+    { q: "Collection은 Qdrant에서 어떤 역할을 해?", a: "비슷한 벡터들을 저장하는 테이블 같은 단위예요." },
+    { q: "Seed Script는 왜 있어?", a: "엑셀 데이터를 초기 벡터로 변환해 Qdrant에 넣는 작업을 자동화해요." },
+    { q: "Next.js는 왜 썼어?", a: "프론트·백엔드를 통합해 챗봇 API/UI를 쉽게 구축할 수 있어서예요." },
+    { q: "Route Handler는 어떤 기능을 해?", a: "질문 → 벡터검색 → 답변 생성하는 API 흐름을 처리해요." },
+    { q: "Vercel은 어떤 역할을 해?", a: "Next.js 앱을 쉽게 배포하고 서버리스 API를 제공해줘요." },
+  ];
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  async function ask() {
-    if (!q.trim()) return;
-    const userMsg = { role: 'user', text: q };
+  async function ask(textOverride) {
+    const question = textOverride || q;
+    if (!question.trim()) return;
+
+    const userMsg = { role: 'user', text: question };
     setMessages(prev => [...prev, userMsg]);
     setQ('');
     setLoading(true);
@@ -21,17 +35,16 @@ export default function Home() {
     const res = await fetch('/api', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: userMsg.text }),
+      body: JSON.stringify({ question }),
     });
-    
+
     if (!res.ok) {
-      setMessages(prev => [...prev, { role: 'bot', text: '서버에서 오류가 발생했어요.' }]);
+      setMessages(prev => [...prev, { role: 'bot', text: '서버 오류가 발생했습니다.' }]);
       setLoading(false);
       return;
     }
 
     const data = await res.json();
-
     const botMsg = { role: 'bot', text: data.answer || data.error || '오류 발생' };
     setMessages(prev => [...prev, botMsg]);
     setLoading(false);
@@ -44,7 +57,7 @@ export default function Home() {
     }
   }
 
-  // 🔹 body / html의 기본 여백을 강제로 제거
+  // 🔹 body 스타일 초기화
   useEffect(() => {
     document.documentElement.style.height = '100%';
     document.documentElement.style.overflow = 'hidden';
@@ -57,127 +70,153 @@ export default function Home() {
     <main style={{
       width: '100vw',
       height: '100vh',
-      background: '#e5e7eb', 
+      background: '#e5e7eb',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
       fontFamily: 'Inter, system-ui, sans-serif',
       color: '#1f2937',
-      overflow: 'hidden', 
+      overflow: 'hidden'
     }}>
+      
+      {/* 전체 레이아웃 */}
       <div style={{
         width: '95%',
-        maxWidth: 700,
-        height: '90vh', 
+        maxWidth: 1100,
+        height: '90vh',
         background: '#f3f4f6',
         borderRadius: '16px',
         boxShadow: '0 6px 16px rgba(0,0,0,0.1)',
         padding: '24px',
         display: 'flex',
-        flexDirection: 'column',
+        gap: '20px'
       }}>
-        <h1 style={{
-          textAlign: 'center',
-          fontSize: '1.6rem',
-          fontWeight: 600,
-          marginBottom: '12px',
-          color: '#111827'
-        }}>
-          💭 Gemini + Qdrant 챗봇
-        </h1>
 
-        {/* 대화창 */}
+        {/* 왼쪽: 채팅 */}
+        <div style={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
+          <h1 style={{
+            textAlign: 'center',
+            fontSize: '1.6rem',
+            fontWeight: 600,
+            marginBottom: '12px',
+            color: '#111827'
+          }}>
+            💭 Gemini + Qdrant 챗봇
+          </h1>
+
+          {/* 대화창 */}
+          <div style={{
+            flex: 1,
+            overflowY: 'auto',
+            background: '#d1d5db',
+            borderRadius: '12px',
+            padding: '16px',
+            marginBottom: '12px',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            {messages.map((m, i) => (
+              <div key={i} style={{
+                display: 'flex',
+                justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start',
+                margin: '8px 0'
+              }}>
+                <div style={{
+                  background: m.role === 'user' ? '#2563eb' : '#f9fafb',
+                  color: m.role === 'user' ? 'white' : '#111827',
+                  padding: '10px 14px',
+                  borderRadius: '16px',
+                  maxWidth: '75%',
+                  lineHeight: 1.5,
+                  wordBreak: 'break-word'
+                }}>
+                  {m.text}
+                </div>
+              </div>
+            ))}
+
+            {loading && (
+              <p style={{
+                textAlign: 'center',
+                color: '#4b5563',
+                fontStyle: 'italic',
+                marginTop: '8px'
+              }}>🤖 답변 생성 중...</p>
+            )}
+            <div ref={chatEndRef} />
+          </div>
+
+          {/* 입력창 */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            border: '1px solid #9ca3af',
+            borderRadius: '12px',
+            background: '#f9fafb',
+            padding: '8px 10px'
+          }}>
+            <input
+              type="text"
+              value={q}
+              onChange={e => setQ(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="질문 입력 후 Enter"
+              style={{
+                flex: 1,
+                padding: '10px',
+                border: 'none',
+                outline: 'none',
+                fontSize: '15px',
+                background: 'transparent'
+              }}
+            />
+            <button
+              onClick={() => ask()}
+              disabled={loading}
+              style={{
+                borderRadius: '8px',
+                background: '#2563eb',
+                color: 'white',
+                border: 'none',
+                padding: '8px 14px',
+                cursor: 'pointer',
+                fontSize: '18px'
+              }}
+            >
+              💬
+            </button>
+          </div>
+        </div>
+
+        {/* 오른쪽: 추천 질문 박스 */}
         <div style={{
           flex: 1,
-          overflowY: 'auto',
-          background: '#d1d5db',
+          background: 'white',
           borderRadius: '12px',
-          padding: '16px',
-          marginBottom: '12px',
-          display: 'flex',
-          flexDirection: 'column'
+          padding: '20px',
+          boxShadow: '0 4px 10px rgba(0,0,0,0.08)',
+          overflowY: 'auto'
         }}>
-          {messages.map((m, i) => (
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '16px' }}>
+            ⭐ 추천 질문
+          </h2>
+
+          {samples.map((item, i) => (
             <div key={i} style={{
-              display: 'flex',
-              justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start',
-              margin: '8px 0'
-            }}>
-              <div style={{
-                background: m.role === 'user' ? '#2563eb' : '#f9fafb',
-                color: m.role === 'user' ? 'white' : '#111827',
-                padding: '10px 14px',
-                borderRadius: '16px',
-                maxWidth: '75%',
-                lineHeight: 1.5,
-                wordBreak: 'break-word',
-                boxShadow: m.role === 'user'
-                  ? '0 2px 6px rgba(37,99,235,0.3)'
-                  : '0 2px 6px rgba(0,0,0,0.1)'
-              }}>
-                {m.text}
-              </div>
+              marginBottom: '14px',
+              padding: '12px',
+              background: '#f3f4f6',
+              borderRadius: '10px',
+              cursor: 'pointer'
+            }}
+              onClick={() => ask(item.q)}
+            >
+              <p style={{ fontWeight: 600, marginBottom: '6px' }}>💬 {item.q}</p>
+              <p style={{ color: '#4b5563', fontSize: '0.9rem' }}>{item.a}</p>
             </div>
           ))}
-          {loading && (
-            <p style={{
-              textAlign: 'center',
-              color: '#4b5563',
-              fontStyle: 'italic',
-              marginTop: '8px'
-            }}>🤖 답변 생성 중...</p>
-          )}
-          <div ref={chatEndRef} />
         </div>
 
-        {/* 입력창 */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          border: '1px solid #9ca3af',
-          borderRadius: '12px',
-          background: '#f9fafb',
-          padding: '8px 10px',
-          flexShrink: 0 
-        }}>
-          <input
-            type="text"
-            value={q}
-            onChange={e => setQ(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="질문을 입력하고 Enter를 누르거나 버튼을 클릭해주세요"
-            style={{
-              flex: 1,
-              padding: '10px',
-              border: 'none',
-              outline: 'none',
-              fontSize: '15px',
-              background: 'transparent',
-              color: '#1f2937'
-            }}
-          />
-          <button
-            onClick={ask}
-            disabled={loading}
-            style={{
-              borderRadius: '8px',
-              background: '#2563eb',
-              color: 'white',
-              border: 'none',
-              padding: '8px 14px',
-              cursor: 'pointer',
-              fontSize: '18px',
-              transition: 'background 0.2s ease',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-            onMouseOver={e => e.currentTarget.style.background = '#1d4ed8'}
-            onMouseOut={e => e.currentTarget.style.background = '#2563eb'}
-          >
-            💬
-          </button>
-        </div>
       </div>
     </main>
   );
