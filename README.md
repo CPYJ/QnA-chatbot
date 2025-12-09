@@ -1,15 +1,14 @@
 # 💭 Q&A 챗봇
 
-Google Gemini 임베딩과 Qdrant 벡터DB를 활용해
 질문에 가장 적합한 답변을 찾아주는 Q&A 챗봇입니다.
 
 ---
 
 ## 🧩 실행 흐름 요약
 
-1. `seed.js` 최초 1번 실행 → Q/A 데이터를 임베딩 후 Qdrant에 저장  
+1. Q/A 데이터를 임베딩 후 Qdrant에 저장  
 2. 사용자가 질문 입력  
-3. `route.js`에서 입력 질문을 임베딩 후 Qdrant에 검색  
+3. 입력된 질문을 임베딩 후 Qdrant에 검색  
 4. 가장 유사한 질문을 찾은 후 같이 묶여있는 답변 반환
 5. 답변 화면 출력
 ---
@@ -78,9 +77,12 @@ Q/A 데이터의 질문을 임베딩하여 해당 벡터와 답변을 Qdrant 컬
 
 | 파일 | 설명 | 링크 |
 |------|------|------|
-| `/app/api/route.js` | 질문 임베딩 → Qdrant 검색 로직 | [보기](app/api/route.js) |
-| `/scripts/seed.js` | 엑셀 데이터 → Qdrant 초기 시드 업로드 | [보기](scripts/seed.js) |
-| `/app/page.js` | UI 및 사용자 입력 처리 | [보기](app/page.js) |
+| `route.js` | 질문 임베딩 → Qdrant 검색 로직 | [보기](app/api/route.js) |
+| `seed.js` | 엑셀 데이터 → Qdrant 초기 시드 업로드 | [보기](scripts/seed.js) |
+| `page.js` | UI 및 사용자 입력 처리 | [보기](app/page.js) |
+
+
+
 
 
 
