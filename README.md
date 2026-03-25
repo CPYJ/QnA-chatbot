@@ -52,6 +52,10 @@ https://qna-chatbot.vercel.app/
 - 텍스트를 벡터로 변환하여 사용자의 질문과 **유사한 데이터를 검색**하는 구조
 
 
+### Hallucination 방지
+- Vector DB 내 검색 결과가 없는 경우 '데이터셋에 없는 질문입니다' 반환
+
+
 ### Service Layer 분리
 
 - Vector DB 접근 로직을 분리하여 유지보수성과 구조 개선
